@@ -11,7 +11,7 @@ let package = Package(
 
 let vapor = (name: "Vapor", package: "vapor")
 
-package.dependencies = [.package(url: "https://github.com/vapor/\(vapor.package)", from: "4.76.0")]
+package.dependencies = [.package(url: "https://github.com/vapor/\(vapor.package)", from: "4.112.0")]
 
 // MARK: - (TARGETS)
 
