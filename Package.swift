@@ -1,41 +1,35 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 6.0
 
 import PackageDescription
 
+let lint = Target.PluginUsage.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")
+
 let package = Package(
   name: "FactsAPI",
-  platforms: [.macOS(.v12)]
-)
-
-// MARK: - (DEPENDENCIES)
-
-let vapor = (name: "Vapor", package: "vapor")
-
-package.dependencies = [.package(url: "https://github.com/vapor/\(vapor.package)", from: "4.112.0")]
-
-// MARK: - (TARGETS)
-
-let api: Target = .executableTarget(
-  name: "FactsAPI",
-  dependencies: [
-    .product(name: vapor.name, package: vapor.package)
+  platforms: [.iOS(.v18),.macOS(.v15)],
+  products: [
+    .executable(name: "FactsAPI", targets: ["FactsAPI"]),
+    .library(name: "FactsAPIClient", targets: ["FactsAPIClient"])
   ],
-  path: "Sources",
-  resources: [.process("res/")]
-)
-
-let apiTests: Target = .testTarget(
-  name: "\(api.name)Tests",
   dependencies: [
-    .target(name: api.name),
-    .product(name: "XCTVapor", package: vapor.package)
+    .package(url: "https://github.com/vapor/vapor", from: "4.0.0"),
+    .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0"),
+    .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", from: "0.1.0"),
   ],
-  path: "Tests",
-  exclude: [" Unit.xctestplan"]
+  targets: [
+    .executableTarget(
+      name: "FactsAPI",
+      dependencies: [.product(name: "Vapor", package: "vapor")],
+      resources: [.process("res/")],
+      plugins: [lint]
+    ),
+    .testTarget(name: "FactsAPITests", dependencies: ["FactsAPI", .product(name: "VaporTesting", package: "vapor")]),
+    .target(
+      name: "FactsAPIClient",
+      dependencies: [.product(name: "Dependencies", package: "swift-dependencies")],
+      plugins: [lint]
+    ),
+    .testTarget(name: "FactsAPIClientTests", dependencies: ["FactsAPIClient"], path: "Tests/FactsAPIClientTests")
+  ]
 )
 
-package.targets = [api, apiTests]
-
-// MARK: - (PRODUCTS)
-
-package.products = [.executable(name: api.name, targets: [api.name])]
